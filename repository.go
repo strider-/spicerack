@@ -1,0 +1,184 @@
+package spicerack
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+	_ "github.com/lib/pq"
+	"strings"
+	"time"
+)
+
+type RematchState int8
+
+const (
+	Unknown     RematchState = -1
+	NeverFought RematchState = 0
+	RedBeatBlue RematchState = 1
+	BlueBeatRed RematchState = 2
+	TradedWins  RematchState = 3
+)
+
+type Repository struct {
+	user, password, dbname string
+	single_conn            bool
+	db                     *sql.DB
+}
+
+func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) {
+	db, err := r.open()
+	if err != nil {
+		return
+	}
+	defer r.close(db)
+
+	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Created_At, Updated_At FROM Champions WHERE Name=Lower(Trim($1))"
+
+	lF = &Fighter{}
+	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.TotalBets, &lF.Created, &lF.Updated)
+	if err != nil {
+		lF = nil
+		err = nil
+	}
+
+	rF = &Fighter{}
+	err = db.QueryRow(sql, blue).Scan(&rF.Id, &rF.Name, &rF.Win, &rF.Loss, &rF.Elo, &rF.TotalBets, &rF.Created, &rF.Updated)
+	if err != nil {
+		rF = nil
+		err = nil
+	}
+
+	return
+}
+
+func (r *Repository) GetRematchState(red, blue *Fighter) (RematchState, error) {
+	if red == nil || blue == nil {
+		return NeverFought, nil
+	}
+
+	db, err := r.open()
+	if err != nil {
+		return Unknown, err
+	}
+	defer r.close(db)
+
+	sql := `SELECT 
+                red_champion_id AS Red, blue_champion_id AS Blue, Winner 
+            FROM Fights 
+            WHERE 
+                (red_champion_id=$1 AND blue_champion_id=$2) OR (red_champion_id=$2 AND blue_champion_id=$1)`
+
+	rows, err := db.Query(sql, red.Id, blue.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	wins := map[int]int{
+		red.Id:  0,
+		blue.Id: 0,
+	}
+
+	for rows.Next() {
+		var r, b, winner int
+		rows.Scan(&r, &b, &winner)
+
+		if winner == 1 {
+			wins[r] += 1
+		} else if winner == 2 {
+			wins[b] += 1
+		}
+	}
+
+	if wins[red.Id] > 0 && wins[blue.Id] > 0 {
+		return TradedWins, nil
+	} else if wins[blue.Id] > 0 {
+		return BlueBeatRed, nil
+	} else if wins[red.Id] > 0 {
+		return RedBeatBlue, nil
+	}
+
+	return NeverFought, nil
+}
+
+func (r *Repository) MatchExists(id int) bool {
+	db, _ := r.open()
+	defer r.close(db)
+	result, _ := db.Exec("SELECT id FROM Fights WHERE match_id=$1", id)
+	rows, _ := result.RowsAffected()
+	return rows > 0
+}
+
+func (r *Repository) InsertMatch(m *Match) error {
+	db, err := r.open()
+	if err != nil {
+		return err
+	}
+	defer r.close(db)
+	err = db.QueryRow(`
+        INSERT INTO Fights 
+            (red_champion_id, blue_champion_id, bets_red, bets_blue, bet_count, winner, created_at, updated_at, match_id) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+		m.RedId, m.BlueId, m.RedBets, m.BlueBets, m.BetCount, m.Winner, m.Created, m.Updated, m.MatchId).Scan(&m.Id)
+	return err
+}
+
+func (r *Repository) GetFighter(name string) (f *Fighter) {
+	db, _ := r.open()
+	defer r.close(db)
+	f = &Fighter{
+		Id:   0,
+		Name: strings.Trim(strings.ToLower(name), " "),
+		Elo:  700, Win: 0, Loss: 0, TotalBets: 0,
+		Created: time.Now(), Updated: time.Now(),
+	}
+	row := db.QueryRow("SELECT id, name, elo, wins, losses, total_bets, created_at, updated_at FROM Champions WHERE name=Lower(Trim($1))", name)
+	row.Scan(&f.Id, &f.Name, &f.Elo, &f.Win, &f.Loss, &f.TotalBets, &f.Created, &f.Updated)
+	return
+}
+
+func (r *Repository) UpdateFighter(f *Fighter, tx *sql.Tx) error {
+	if f.Id == 0 {
+		err := tx.QueryRow("INSERT INTO Champions (name, elo, wins, losses, total_bets, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+			f.Name, f.Elo, f.Win, f.Loss, f.TotalBets, f.Created, f.Updated).Scan(&f.Id)
+		if err != nil {
+			return err
+		}
+	} else {
+		f.Updated = time.Now()
+		_, err := tx.Exec("UPDATE Champions SET elo=$1, wins=$2, losses=$3, total_bets=$4, updated_at=$5 WHERE id=$6",
+			f.Elo, f.Win, f.Loss, f.TotalBets, f.Updated, f.Id)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *Repository) StartTransaction() (*sql.Tx, error) {
+	if r.single_conn {
+		db, _ := r.open()
+		return db.Begin()
+	} else {
+		return nil, errors.New("Cannot start transaction unless repository was created with OpenDb.")
+	}
+}
+
+func (r *Repository) Close() {
+	if r.single_conn {
+		r.db.Close()
+	}
+}
+
+func (r *Repository) open() (*sql.DB, error) {
+	if r.single_conn {
+		return r.db, nil
+	} else {
+		return sql.Open("postgres", fmt.Sprintf("user=%s password=%s dbname=%s", r.user, r.password, r.dbname))
+	}
+}
+
+func (r *Repository) close(db *sql.DB) {
+	if !r.single_conn {
+		db.Close()
+	}
+}
