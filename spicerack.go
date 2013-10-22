@@ -2,9 +2,12 @@ package spicerack
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
+	"gofig"
 	"math"
+	"os"
 )
 
 type FightWinner int8
@@ -36,6 +39,18 @@ func OpenDb(user, password, dbname string) (*Repository, error) {
 		single_conn: true,
 		db:          db,
 	}, nil
+}
+
+func GofigFromEnv(env string) (*gofig.Config, error) {
+	conf_file := os.Getenv(env)
+	if len(conf_file) == 0 {
+		return nil, errors.New(fmt.Sprintf("%s environment variable has not been set, and needs to point to a JSON configuration file.", env))
+	}
+	conf, err := gofig.Load(conf_file)
+	if err != nil {
+		return nil, err
+	}
+	return conf, nil
 }
 
 func UpdateFighterElo(red, blue *Fighter, winner FightWinner) {
