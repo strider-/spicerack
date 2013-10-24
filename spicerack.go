@@ -1,7 +1,6 @@
 package spicerack
 
 import (
-	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -80,22 +79,6 @@ func GofigFromEnv(env string) (*gofig.Config, error) {
 		return nil, err
 	}
 	return conf, nil
-}
-
-func IrcRainbowText(text string) string {
-	colors := []int{4, 7, 8, 9, 11, 12, 6}
-	buf := bytes.NewBuffer(nil)
-	skip := 0
-	for i, r := range text {
-		if r == ' ' {
-			skip++
-			buf.WriteString(" ")
-		} else {
-			buf.WriteString(fmt.Sprintf("\x03%02d%s", colors[(i-skip)%(len(colors))], string(r)))
-		}
-	}
-	buf.WriteByte(15)
-	return buf.String()
 }
 
 func UpdateFighterElo(red, blue *Fighter, winner FightWinner) {
