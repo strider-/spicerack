@@ -1,6 +1,15 @@
 package spicerack
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+const (
+	stats_format       string = "E:%s W\x02\x0309%d\x03\x02/L\x02\x0304%d\x03\x02 (\x02%02.1f%%\x02)"
+	elo_format         string = "\x03%02d%d\x03"
+	godlike_elo_format string = "\x1F\x02\x0309-%d-\x03\x02\x1F"
+)
 
 type Fighter struct {
 	Id        int
@@ -19,4 +28,26 @@ func (f *Fighter) TotalMatches() int {
 
 func (f *Fighter) WinRate() float32 {
 	return (float32(f.Win) / float32(f.TotalMatches())) * 100
+}
+
+func (f *Fighter) IrcEloFormat() string {
+	color := 0
+
+	if f.Elo < 300 {
+		color = 4 // Red
+	} else if f.Elo >= 300 && f.Elo < 500 {
+		color = 7 // Orange
+	} else if f.Elo >= 500 && f.Elo < 700 {
+		color = 3 // Dark Green
+	} else if f.Elo >= 700 && f.Elo < 850 {
+		color = 9 // Light Green
+	} else if f.Elo >= 850 {
+		return fmt.Sprintf(godlike_elo_format, f.Elo)
+	}
+
+	return fmt.Sprintf(elo_format, color, f.Elo)
+}
+
+func (f *Fighter) IrcStats() string {
+	return fmt.Sprintf(stats_format, f.IrcEloFormat(), f.Win, f.Loss, f.WinRate())
 }
