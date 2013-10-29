@@ -135,7 +135,7 @@ func (r *Repository) GetFighter(name string) (f *Fighter) {
 	f = &Fighter{
 		Id:   0,
 		Name: name,
-		Elo:  700, Win: 0, Loss: 0, TotalBets: 0,
+		Elo:  300, Win: 0, Loss: 0, TotalBets: 0,
 		CharacterId: 0, Tier: 0,
 		Created: time.Now(), Updated: time.Now(),
 	}

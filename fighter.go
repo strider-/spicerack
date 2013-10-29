@@ -55,15 +55,15 @@ func (f *Fighter) IrcTierFormat() string {
 func (f *Fighter) IrcEloFormat() string {
 	color := 0
 
-	if f.Elo < 400 {
+	if f.Elo < 300 {
 		color = 4 // Red
-	} else if f.Elo >= 400 && f.Elo < 700 {
+	} else if f.Elo >= 300 && f.Elo < 500 {
 		color = 7 // Orange
-	} else if f.Elo >= 700 && f.Elo < 1000 {
+	} else if f.Elo >= 500 && f.Elo < 700 {
 		color = 3 // Dark Green
-	} else if f.Elo >= 1000 && f.Elo < 1300 {
+	} else if f.Elo >= 700 && f.Elo < 900 {
 		color = 9 // Light Green
-	} else if f.Elo >= 1300 {
+	} else if f.Elo >= 900 {
 		return fmt.Sprintf(godlike_elo_format, f.Elo)
 	}
 
