@@ -42,14 +42,14 @@ func (r *Repository) getFighters(red, blue, sql string) (lF, rF *Fighter, err er
 	defer r.close(db)
 
 	lF = &Fighter{}
-	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.CharacterId, &lF.Tier, &lF.TotalBets, &lF.Created, &lF.Updated)
+	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.TotalBets, &lF.CharacterId, &lF.Tier, &lF.Created, &lF.Updated)
 	if err != nil {
 		lF = nil
 		err = nil
 	}
 
 	rF = &Fighter{}
-	err = db.QueryRow(sql, blue).Scan(&rF.Id, &rF.Name, &rF.Win, &rF.Loss, &rF.Elo, &rF.CharacterId, &rF.Tier, &rF.TotalBets, &rF.Created, &rF.Updated)
+	err = db.QueryRow(sql, blue).Scan(&rF.Id, &rF.Name, &rF.Win, &rF.Loss, &rF.Elo, &rF.TotalBets, &rF.CharacterId, &rF.Tier, &rF.Created, &rF.Updated)
 	if err != nil {
 		rF = nil
 		err = nil
