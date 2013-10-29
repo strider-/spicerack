@@ -30,7 +30,7 @@ func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) 
 }
 
 func (r *Repository) SearchFighters(red, blue string) (lF, rF *Fighter, err error) {
-	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE lower(Name)=lower($1)"
+	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE lower(Name)=lower($1) AND character_id > 0"
 	return r.getFighters(red, blue, sql)
 }
 
