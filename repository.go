@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
-	"strings"
 	"time"
 )
 
@@ -26,23 +25,31 @@ type Repository struct {
 }
 
 func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) {
+	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE Name=$1"
+	return r.getFighters(red, blue, sql)
+}
+
+func (r *Repository) SearchFighters(red, blue string) (lF, rF *Fighter, err error) {
+	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE lower(Name)=lower($1)"
+	return r.getFighters(red, blue, sql)
+}
+
+func (r *Repository) getFighters(red, blue, sql string) (lF, rF *Fighter, err error) {
 	db, err := r.open()
 	if err != nil {
 		return
 	}
 	defer r.close(db)
 
-	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Created_At, Updated_At FROM Champions WHERE Name=Lower(Trim($1))"
-
 	lF = &Fighter{}
-	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.TotalBets, &lF.Created, &lF.Updated)
+	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.CharacterId, &lF.Tier, &lF.TotalBets, &lF.Created, &lF.Updated)
 	if err != nil {
 		lF = nil
 		err = nil
 	}
 
 	rF = &Fighter{}
-	err = db.QueryRow(sql, blue).Scan(&rF.Id, &rF.Name, &rF.Win, &rF.Loss, &rF.Elo, &rF.TotalBets, &rF.Created, &rF.Updated)
+	err = db.QueryRow(sql, blue).Scan(&rF.Id, &rF.Name, &rF.Win, &rF.Loss, &rF.Elo, &rF.CharacterId, &rF.Tier, &rF.TotalBets, &rF.Created, &rF.Updated)
 	if err != nil {
 		rF = nil
 		err = nil
@@ -70,7 +77,7 @@ func (r *Repository) GetRematchState(red, blue *Fighter) (RematchState, error) {
 
 	rows, err := db.Query(sql, red.Id, blue.Id)
 	if err != nil {
-		return 0, err
+		return Unknown, err
 	}
 
 	wins := map[int]int{
@@ -127,26 +134,38 @@ func (r *Repository) GetFighter(name string) (f *Fighter) {
 	defer r.close(db)
 	f = &Fighter{
 		Id:   0,
-		Name: strings.Trim(strings.ToLower(name), " "),
+		Name: name,
 		Elo:  700, Win: 0, Loss: 0, TotalBets: 0,
+		CharacterId: 0, Tier: 0,
 		Created: time.Now(), Updated: time.Now(),
 	}
-	row := db.QueryRow("SELECT id, name, elo, wins, losses, total_bets, created_at, updated_at FROM Champions WHERE name=Lower(Trim($1))", name)
-	row.Scan(&f.Id, &f.Name, &f.Elo, &f.Win, &f.Loss, &f.TotalBets, &f.Created, &f.Updated)
+	row := db.QueryRow("SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE name=$1", name)
+	row.Scan(&f.Id, &f.Name, &f.Elo, &f.Win, &f.Loss, &f.TotalBets, &f.CharacterId, &f.Tier, &f.Created, &f.Updated)
 	return
 }
 
-func (r *Repository) UpdateFighter(f *Fighter, tx *sql.Tx) error {
+func (r *Repository) UpdateFighterInTrans(f *Fighter, tx *sql.Tx) error {
+	return r.updateFighter(f, tx)
+}
+
+func (r *Repository) UpdateFighter(f *Fighter) error {
+	return r.updateFighter(f, r.db)
+}
+
+func (r *Repository) updateFighter(f *Fighter, x interface {
+	QueryRow(string, ...interface{}) *sql.Row
+	Exec(string, ...interface{}) (sql.Result, error)
+}) error {
 	if f.Id == 0 {
-		err := tx.QueryRow("INSERT INTO Champions (name, elo, wins, losses, total_bets, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-			f.Name, f.Elo, f.Win, f.Loss, f.TotalBets, f.Created, f.Updated).Scan(&f.Id)
+		err := x.QueryRow("INSERT INTO Champions (name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
+			f.Name, f.Elo, f.Win, f.Loss, f.TotalBets, f.CharacterId, f.Tier, f.Created, f.Updated).Scan(&f.Id)
 		if err != nil {
 			return err
 		}
 	} else {
 		f.Updated = time.Now()
-		_, err := tx.Exec("UPDATE Champions SET elo=$1, wins=$2, losses=$3, total_bets=$4, updated_at=$5 WHERE id=$6",
-			f.Elo, f.Win, f.Loss, f.TotalBets, f.Updated, f.Id)
+		_, err := x.Exec("UPDATE Champions SET elo=$1, wins=$2, losses=$3, total_bets=$4, tier=$5, updated_at=$6 WHERE id=$7",
+			f.Elo, f.Win, f.Loss, f.TotalBets, f.Tier, f.Updated, f.Id)
 		if err != nil {
 			return err
 		}

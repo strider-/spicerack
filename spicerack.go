@@ -19,8 +19,14 @@ type FightWinner int8
 const (
 	WINNER_RED  FightWinner = 1
 	WINNER_BLUE FightWinner = 2
-	P1_KEY      string      = "player1name"
-	P2_KEY      string      = "player2name"
+
+	P1_KEY string = "player1name"
+	P2_KEY string = "player2name"
+
+	TIER_S int = 1
+	TIER_A int = 2
+	TIER_B int = 3
+	TIER_P int = 4
 )
 
 func Db(user, password, dbname string) *Repository {
