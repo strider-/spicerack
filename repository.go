@@ -25,21 +25,28 @@ type Repository struct {
 }
 
 func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) {
-	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE Name=$1"
-	return r.getFighters(red, blue, sql)
+	criteria := "Name=$1"
+	return r.getFighters(red, blue, criteria)
 }
 
 func (r *Repository) SearchFighters(red, blue string) (lF, rF *Fighter, err error) {
-	sql := "SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE lower(Name)=lower($1) AND character_id > 0"
-	return r.getFighters(red, blue, sql)
+	criteria := "lower(Name)=lower($1) AND tier > 0"
+	return r.getFighters(red, blue, criteria)
 }
 
-func (r *Repository) getFighters(red, blue, sql string) (lF, rF *Fighter, err error) {
+func (r *Repository) SearchRetiredFighters(red, blue string) (lF, rF *Fighter, err error) {
+	criteria := "lower(Name)=lower($1) AND tier = 0"
+	return r.getFighters(red, blue, criteria)
+}
+
+func (r *Repository) getFighters(red, blue, criteria string) (lF, rF *Fighter, err error) {
 	db, err := r.open()
 	if err != nil {
 		return
 	}
 	defer r.close(db)
+
+	sql := fmt.Sprintf("SELECT Id, Name, Wins, Losses, Elo, Total_Bets, Character_Id, Tier, Created_At, Updated_At FROM Champions WHERE %s", criteria)
 
 	lF = &Fighter{}
 	err = db.QueryRow(sql, red).Scan(&lF.Id, &lF.Name, &lF.Win, &lF.Loss, &lF.Elo, &lF.TotalBets, &lF.CharacterId, &lF.Tier, &lF.Created, &lF.Updated)
