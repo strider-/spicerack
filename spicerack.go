@@ -23,11 +23,11 @@ const (
 	P1_KEY string = "player1name"
 	P2_KEY string = "player2name"
 
-	TIER_NA int = 0
-	TIER_S  int = 1
-	TIER_A  int = 2
-	TIER_B  int = 3
-	TIER_P  int = 4
+	TIER_R int = 0 // Retired
+	TIER_S int = 1
+	TIER_A int = 2
+	TIER_B int = 3
+	TIER_P int = 4 // Potato
 )
 
 func Db(user, password, dbname string) *Repository {

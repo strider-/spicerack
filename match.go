@@ -14,3 +14,7 @@ type Match struct {
 	Created  time.Time
 	Updated  time.Time
 }
+
+func (m *Match) InDb() bool {
+	return m.Id > 0
+}
