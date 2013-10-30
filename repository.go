@@ -138,15 +138,15 @@ func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter, err error
 		CharacterId: 0, Tier: 0,
 		Created: time.Now(), Updated: time.Now(),
 	}
-	baseSql := "SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE"
+	baseSql := "SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE %s"
 
 	var sql string = ""
 	switch nameOrCharId.(type) {
 	case string:
 		f.Name = nameOrCharId.(string)
-		sql = fmt.Sprintf("%s name=$1", baseSql)
+		sql = fmt.Sprintf(baseSql, "name=$1")
 	case int, int8, int16, int64:
-		sql = fmt.Sprintf("%s character_id=$1", baseSql)
+		sql = fmt.Sprintf(baseSql, "character_id=$1")
 	default:
 		f = nil
 		err = errors.New("GetFighter needs a string (name) or int (character_id) to fetch by.")
