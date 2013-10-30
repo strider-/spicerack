@@ -129,7 +129,7 @@ func (r *Repository) InsertMatch(m *Match) error {
 	return err
 }
 
-func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter) {
+func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter, err error) {
 	db, _ := r.open()
 	defer r.close(db)
 	f = &Fighter{
@@ -148,7 +148,9 @@ func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter) {
 	case int, int8, int16, int64:
 		sql = fmt.Sprintf("%s character_id=$1", baseSql)
 	default:
-		panic("GetFighter needs a string (name) or int (character_id) to fetch by.")
+		f = nil
+		err = errors.New("GetFighter needs a string (name) or int (character_id) to fetch by.")
+		return
 	}
 
 	row := db.QueryRow(sql, nameOrCharId)
