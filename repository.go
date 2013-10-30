@@ -149,7 +149,13 @@ func (r *Repository) UpdateFighterInTrans(f *Fighter, tx *sql.Tx) error {
 }
 
 func (r *Repository) UpdateFighter(f *Fighter) error {
-	return r.updateFighter(f, r.db)
+	if r.single_conn {
+		return r.updateFighter(f, r.db)
+	} else {
+		db, _ := r.open()
+		defer r.close(db)
+		return r.updateFighter(f, db)
+	}
 }
 
 func (r *Repository) updateFighter(f *Fighter, x interface {
@@ -170,6 +176,49 @@ func (r *Repository) updateFighter(f *Fighter, x interface {
 			return err
 		}
 	}
+	return nil
+}
+
+func (r *Repository) ResetElo(base int) error {
+	db, _ := r.open()
+	defer db.Close()
+
+	_, err := db.Exec("UPDATE Champions SET Elo=$1, wins=0, losses=0, total_bets=0", base)
+	if err != nil {
+		return err
+	}
+
+	result, err := db.Query("SELECT id, red_champion_id, blue_champion_id, bets_red, bets_blue, winner, match_id FROM Fights ORDER BY match_id ASC")
+	if err != nil {
+		return err
+	}
+	fsql := "SELECT id, elo, wins, losses, total_bets FROM Champions WHERE id=$1"
+
+	for result.Next() {
+		m := &Match{}
+		red, blue := &Fighter{}, &Fighter{}
+
+		result.Scan(&m.Id, &m.RedId, &m.BlueId, &m.RedBets, &m.BlueBets, &m.Winner, &m.MatchId)
+		fmt.Printf("Processing match #%05d\r", m.MatchId)
+		if err := db.QueryRow(fsql, m.RedId).Scan(&red.Id, &red.Elo, &red.Win, &red.Loss, &red.TotalBets); err != nil {
+			return err
+		}
+		if err := db.QueryRow(fsql, m.BlueId).Scan(&blue.Id, &blue.Elo, &blue.Win, &blue.Loss, &blue.TotalBets); err != nil {
+			return err
+		}
+
+		red.TotalBets += m.RedBets
+		blue.TotalBets += m.BlueBets
+		UpdateFighterElo(red, blue, FightWinner(m.Winner))
+
+		if err := r.UpdateFighter(red); err != nil {
+			return err
+		}
+		if err := r.UpdateFighter(blue); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
