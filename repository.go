@@ -129,17 +129,29 @@ func (r *Repository) InsertMatch(m *Match) error {
 	return err
 }
 
-func (r *Repository) GetFighter(name string) (f *Fighter) {
+func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter) {
 	db, _ := r.open()
 	defer r.close(db)
 	f = &Fighter{
-		Id:   0,
-		Name: name,
-		Elo:  300, Win: 0, Loss: 0, TotalBets: 0,
+		Id:  0,
+		Elo: 300, Win: 0, Loss: 0, TotalBets: 0,
 		CharacterId: 0, Tier: 0,
 		Created: time.Now(), Updated: time.Now(),
 	}
-	row := db.QueryRow("SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE name=$1", name)
+	baseSql := "SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE"
+
+	var sql string = ""
+	switch nameOrCharId.(type) {
+	case string:
+		f.Name = nameOrCharId.(string)
+		sql = fmt.Sprintf("%s name=$1", baseSql)
+	case int, int8, int16, int64:
+		sql = fmt.Sprintf("%s character_id=$1", baseSql)
+	default:
+		panic("GetFighter needs a string (name) or int (character_id) to fetch by.")
+	}
+
+	row := db.QueryRow(sql, nameOrCharId)
 	row.Scan(&f.Id, &f.Name, &f.Elo, &f.Win, &f.Loss, &f.TotalBets, &f.CharacterId, &f.Tier, &f.Created, &f.Updated)
 	return
 }
@@ -162,7 +174,7 @@ func (r *Repository) updateFighter(f *Fighter, x interface {
 	QueryRow(string, ...interface{}) *sql.Row
 	Exec(string, ...interface{}) (sql.Result, error)
 }) error {
-	if f.Id == 0 {
+	if !f.InDb() {
 		err := x.QueryRow("INSERT INTO Champions (name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
 			f.Name, f.Elo, f.Win, f.Loss, f.TotalBets, f.CharacterId, f.Tier, f.Created, f.Updated).Scan(&f.Id)
 		if err != nil {
@@ -170,8 +182,8 @@ func (r *Repository) updateFighter(f *Fighter, x interface {
 		}
 	} else {
 		f.Updated = time.Now()
-		_, err := x.Exec("UPDATE Champions SET elo=$1, wins=$2, losses=$3, total_bets=$4, tier=$5, updated_at=$6 WHERE id=$7",
-			f.Elo, f.Win, f.Loss, f.TotalBets, f.Tier, f.Updated, f.Id)
+		_, err := x.Exec("UPDATE Champions SET elo=$1, wins=$2, losses=$3, total_bets=$4, character_id=$5, tier=$6, updated_at=$7 WHERE id=$8",
+			f.Elo, f.Win, f.Loss, f.TotalBets, f.CharacterId, f.Tier, f.Updated, f.Id)
 		if err != nil {
 			return err
 		}

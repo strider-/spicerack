@@ -25,6 +25,10 @@ type Fighter struct {
 	Updated     time.Time
 }
 
+func (f *Fighter) InDb() bool {
+	return f.Id > 0
+}
+
 func (f *Fighter) TotalMatches() int {
 	return f.Win + f.Loss
 }
