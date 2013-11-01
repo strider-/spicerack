@@ -20,9 +20,6 @@ const (
 	WINNER_RED  FightWinner = 1
 	WINNER_BLUE FightWinner = 2
 
-	P1_KEY string = "player1name"
-	P2_KEY string = "player2name"
-
 	TIER_R int = 0 // Retired
 	TIER_S int = 1
 	TIER_A int = 2
@@ -54,7 +51,7 @@ func OpenDb(user, password, dbname string) (*Repository, error) {
 	}, nil
 }
 
-func GetSecretData(sshhh string) (data map[string]string, err error) {
+func GetSecretData(sshhh string) (fc *FightCard, err error) {
 	r, err := http.Get(sshhh)
 	if err != nil {
 		return
@@ -66,12 +63,13 @@ func GetSecretData(sshhh string) (data map[string]string, err error) {
 		return
 	}
 
-	err = json.Unmarshal(raw, &data)
+	fc = &FightCard{}
+	err = json.Unmarshal(raw, fc)
 	if err != nil {
 		return
 	}
 
-	addMrsDash(data)
+	addMrsDash(fc)
 
 	return
 }
@@ -107,22 +105,16 @@ func UpdateFighterElo(red, blue *Fighter, winner FightWinner) {
 	}
 }
 
-func addMrsDash(data map[string]string) {
+func addMrsDash(fc *FightCard) {
 	dash := make([]string, 0)
 
-	if hasFighter(data, "bonegolem") {
+	if fc.Involves("bonegolem") {
 		dash = append(dash, "thats_my_boy")
 	}
 
 	if len(dash) > 0 {
-		data[":mrs_dash"] = strings.Join(dash, "|")
+		fc.MrsDash = strings.Join(dash, "|")
 	}
-}
-
-func hasFighter(data map[string]string, fighter string) bool {
-	lcase_fighter := strings.ToLower(strings.Trim(fighter, " "))
-	return strings.ToLower(strings.Trim(data[P1_KEY], " ")) == lcase_fighter ||
-		strings.ToLower(strings.Trim(data[P2_KEY], " ")) == lcase_fighter
 }
 
 func computeScore(self, opponent int) float64 {
