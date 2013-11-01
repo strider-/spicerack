@@ -14,13 +14,30 @@ type FightCard struct {
 	MrsDash   string
 }
 
-func (fc *FightCard) Upset() bool {
-	if fc.Status == "1" && fc.BlueTotal > fc.RedTotal {
-		return true
-	} else if fc.Status == "2" && fc.RedTotal > fc.BlueTotal {
-		return true
+func (fc *FightCard) TakingBets() {
+	return fc.Status == "open"
+}
+
+func (fc *FightCard) InProgress() {
+	return fc.Status == "locked"
+}
+
+func (fc *FightCard) WeHaveAWinner() {
+	return fc.Status == "1" || fc.Status == "2"
+}
+
+func (fc *FightCard) Winner() string {
+	if fc.Status == "1" {
+		return fc.RedName
+	} else if fc.Status == "2" {
+		return fc.BlueName
 	}
-	return false
+	return ""
+}
+
+func (fc *FightCard) Upset() bool {
+	return (fc.Status == "1" && fc.BlueTotal > fc.RedTotal) ||
+		(fc.Status == "2" && fc.RedTotal > fc.BlueTotal)
 }
 
 func (fc *FightCard) Odds() string {
