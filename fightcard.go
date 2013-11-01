@@ -14,15 +14,15 @@ type FightCard struct {
 	MrsDash   string
 }
 
-func (fc *FightCard) TakingBets() {
+func (fc *FightCard) TakingBets() bool {
 	return fc.Status == "open"
 }
 
-func (fc *FightCard) InProgress() {
+func (fc *FightCard) InProgress() bool {
 	return fc.Status == "locked"
 }
 
-func (fc *FightCard) WeHaveAWinner() {
+func (fc *FightCard) WeHaveAWinner() bool {
 	return fc.Status == "1" || fc.Status == "2"
 }
 
