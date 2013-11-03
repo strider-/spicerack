@@ -67,9 +67,9 @@ func (f *Fighter) IrcEloFormat() string {
 		color = 7 // Orange
 	} else if f.Elo >= 500 && f.Elo < 700 {
 		color = 3 // Dark Green
-	} else if f.Elo >= 700 && f.Elo < 900 {
+	} else if f.Elo >= 700 && f.Elo < 950 {
 		color = 9 // Light Green
-	} else if f.Elo >= 900 {
+	} else if f.Elo >= 950 {
 		return fmt.Sprintf(godlike_elo_format, f.Elo)
 	}
 
