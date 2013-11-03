@@ -36,8 +36,8 @@ func (fc *FightCard) Winner() string {
 }
 
 func (fc *FightCard) Upset(factor float64) bool {
-	return (fc.Status == "1" && (fc.BlueTotal*factor) > fc.RedTotal) ||
-		(fc.Status == "2" && (fc.RedTotal*factor) > fc.BlueTotal)
+	return (fc.Status == "1" && (float64(fc.BlueTotal)*factor) > float64(fc.RedTotal)) ||
+		(fc.Status == "2" && (float64(fc.RedTotal)*factor) > float64(fc.BlueTotal))
 }
 
 func (fc *FightCard) Odds() string {
