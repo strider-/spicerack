@@ -210,7 +210,8 @@ func (r *Repository) GetHistory(f *Fighter) *History {
 			FROM Fights f 
 				JOIN Champions r on r.id = f.red_champion_id 
 				JOIN Champions b on b.id = f.blue_champion_id 
-			WHERE (red_champion_id=$1) or (blue_champion_id=$1)`
+			WHERE (red_champion_id=$1) or (blue_champion_id=$1)
+			ORDER BY elo DESC`
 	rows, _ := db.Query(sql, f.Id)
 	var wins, losses []*FightResult
 
