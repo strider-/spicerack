@@ -200,6 +200,37 @@ func (r *Repository) updateFighter(f *Fighter, x interface {
 	return nil
 }
 
+func (r *Repository) GetHistory(f *Fighter) *History {
+	db, _ := r.open()
+	defer r.close(db)
+	sql := `SELECT	
+				CASE WHEN red_champion_id=$1 THEN b.name else r.name END AS opponent, 
+				CASE WHEN red_champion_id=$1 THEN b.elo else r.elo END AS elo, 
+				CASE WHEN (winner=1 and red_champion_id=$1) or (winner=2 and blue_champion_id=$1) THEN 1 else 0 END AS outcome 
+			FROM Fights f 
+				JOIN Champions r on r.id = f.red_champion_id 
+				JOIN Champions b on b.id = f.blue_champion_id 
+			WHERE (red_champion_id=$1) or (blue_champion_id=$1)`
+	rows, _ := db.Query(sql, f.Id)
+	var wins, losses []*FightResult
+
+	for rows.Next() {
+		r := &FightResult{}
+		rows.Scan(&r.Opponent, &r.Elo, &r.Victorious)
+		if r.Victorious {
+			wins = append(wins, r)
+		} else {
+			losses = append(losses, r)
+		}
+	}
+
+	return &History{
+		Fighter: f,
+		Wins:    wins,
+		Losses:  losses,
+	}
+}
+
 func (r *Repository) ResetElo(base int) error {
 	db, _ := r.open()
 	defer db.Close()

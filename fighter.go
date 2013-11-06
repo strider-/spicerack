@@ -18,11 +18,11 @@ type Fighter struct {
 	Loss        int
 	Elo         int
 	Name        string
-	TotalBets   int
-	CharacterId int
+	TotalBets   int `json:"-"`
+	CharacterId int `json:"-"`
 	Tier        int
-	Created     time.Time
-	Updated     time.Time
+	Created     time.Time `json:"-"`
+	Updated     time.Time `json:"-"`
 }
 
 func (f *Fighter) InDb() bool {
