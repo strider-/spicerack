@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/JKallhoff/gofig"
 	_ "github.com/lib/pq"
-	"gofig"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -110,6 +110,9 @@ func addMrsDash(fc *FightCard) {
 
 	if fc.Involves("bonegolem") {
 		dash = append(dash, "thats_my_boy")
+	}
+	if fc.Involves("sissy") {
+		dash = append(dash, "fake_astro")
 	}
 
 	if len(dash) > 0 {
