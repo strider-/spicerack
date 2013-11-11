@@ -11,7 +11,7 @@ type FightCard struct {
 	RedTotal  int    `json:"player1total,string"`
 	BlueTotal int    `json:"player2total,string"`
 	Status    string `json:"status"`
-	MrsDash   string
+	MrsDash   []string
 }
 
 func (fc *FightCard) TakingBets() bool {

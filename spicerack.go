@@ -11,7 +11,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"strings"
 )
 
 type FightWinner int8
@@ -115,9 +114,7 @@ func addMrsDash(fc *FightCard) {
 		dash = append(dash, "fake_astro")
 	}
 
-	if len(dash) > 0 {
-		fc.MrsDash = strings.Join(dash, "|")
-	}
+	fc.MrsDash = dash
 }
 
 func computeScore(self, opponent int) float64 {
