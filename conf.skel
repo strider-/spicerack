@@ -1,0 +1,30 @@
+// Skeleton JSON configuration file.  Point $ME_CONF env variable to the location of this file
+// once you populate with required values.
+
+{
+    // Pushover is a service for sending push notifications to devices.
+    "pushover": {
+        "url": "https://api.pushover.net/1/messages.json",
+        "user_key": "[Pushover User Key]",
+        "irc_token": "[Pushover App Token]"
+    },    
+    "salty": {
+        "db_name": "dreams",
+        "db_user": "postgres",
+        "db_pass": "[Password for DB User]",
+        "server":  "[SynIRC server to connect to]",
+        "channel": "[IRC channel to join & report to]",
+        "nick": "DreamShaker",
+        "pass": "[Password for registered nick]",
+        "bot_email": "[Email for nick registration]",
+        "the_shiznit": "[You gonna have to figure this out]",
+        "websocket": "www-cdn-twitch.saltybet.com:8000",
+        "recent_tournament_count": 3,
+        "illum_email": "[Illuminati E-mail]",
+        "illum_pword": "[Illuminati Password]"
+        "wl_addr": "[Win/Loss stat page URL]",
+        "wl_user": "[Win/Loss stat page user]",
+        "wl_pass": "[Win/Loss stat page password]",
+        "google_api_key": "[Google API key for shortening URLs]"
+    }
+}
