@@ -24,6 +24,29 @@ type Repository struct {
 	db                     *sql.DB
 }
 
+func (r *Repository) GetFighterNames() (fighters map[int]string, err error) {
+	db, err := r.open()
+	if err != nil {
+		return
+	}
+	defer r.close(db)
+
+	rows, err := db.Query("SELECT Id, Name FROM Champions WHERE Tier > 0 ORDER BY Name")
+	if err != nil {
+		return
+	}
+
+	fighters = make(map[int]string, 0)
+	for rows.Next() {
+		var id int
+		var name string
+		rows.Scan(&id, &name)
+		fighters[id] = name
+	}
+
+	return
+}
+
 func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) {
 	criteria := "Name=$1"
 	return r.getFighters(red, blue, criteria)

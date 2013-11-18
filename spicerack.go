@@ -10,7 +10,10 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"os"
+	"strings"
 )
 
 type FightWinner int8
@@ -50,14 +53,26 @@ func OpenDb(user, password, dbname string) (*Repository, error) {
 	}, nil
 }
 
-func GetSecretData(sshhh string) (fc *FightCard, err error) {
-	r, err := http.Get(sshhh)
-	if err != nil {
-		return
+func LogIntoSaltyBet(user, pass string) (client *http.Client, err error) {
+	jar, _ := cookiejar.New(nil)
+	client = &http.Client{Jar: jar}
+	r, err := client.PostForm("http://www.saltybet.com/authenticate?signin=1", url.Values{
+		"email":        {user},
+		"pword":        {pass},
+		"authenticate": {"signin"},
+	})
+	if err == nil {
+		defer r.Body.Close()
+		page, _ := ioutil.ReadAll(r.Body)
+		if strings.Contains(string(page), "ui-state-error") {
+			err = errors.New("Invalid saltybet credentials")
+		}
 	}
+	return
+}
 
-	defer r.Body.Close()
-	raw, err := ioutil.ReadAll(r.Body)
+func GetSecretData(sshhh string) (fc *FightCard, err error) {
+	raw, err := getJson(sshhh)
 	if err != nil {
 		return
 	}
@@ -70,6 +85,31 @@ func GetSecretData(sshhh string) (fc *FightCard, err error) {
 
 	addMrsDash(fc)
 
+	return
+}
+
+func GetFighterStats(client *http.Client, url string) (fs *FighterStats, err error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	raw, _ := ioutil.ReadAll(resp.Body)
+
+	fs = &FighterStats{}
+	err = json.Unmarshal(raw, fs)
+	return
+}
+
+func getJson(url string) (raw []byte, err error) {
+	r, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer r.Body.Close()
+
+	raw, err = ioutil.ReadAll(r.Body)
 	return
 }
 
