@@ -18,6 +18,7 @@
         "pass": "[Password for registered nick]",
         "bot_email": "[Email for nick registration]",
         "the_shiznit": "[You gonna have to figure this out]",
+        "ajax_stats": "http://www.saltybet.com/ajax_get_stats.php",
         "websocket": "www-cdn-twitch.saltybet.com:8000",
         "recent_tournament_count": 3,
         "illum_email": "[Illuminati E-mail]",
