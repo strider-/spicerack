@@ -153,6 +153,9 @@ func addMrsDash(fc *FightCard) {
 	if fc.Involves("sissy") {
 		dash = append(dash, "fake_astro")
 	}
+	if fc.Involves("daimon 71113") {
+		dash = append(dash, "the_gawd")
+	}
 
 	fc.MrsDash = dash
 }
