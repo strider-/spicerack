@@ -37,9 +37,9 @@ func (r *Repository) GetFighterNames() (fighters map[int]string, err error) {
 	}
 
 	fighters = make(map[int]string, 0)
+	var id int
+	var name string
 	for rows.Next() {
-		var id int
-		var name string
 		rows.Scan(&id, &name)
 		fighters[id] = name
 	}
