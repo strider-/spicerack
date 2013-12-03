@@ -31,7 +31,7 @@ func (r *Repository) GetFighterNames() (fighters map[int]string, err error) {
 	}
 	defer r.close(db)
 
-	rows, err := db.Query("SELECT Id, Name FROM Champions WHERE Tier > 0 ORDER BY Name")
+	rows, err := db.Query("SELECT Character_Id, Name FROM Champions WHERE Tier > 0 ORDER BY Name")
 	if err != nil {
 		return
 	}
