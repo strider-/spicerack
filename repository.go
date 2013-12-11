@@ -31,7 +31,7 @@ func (r *Repository) GetFighterNames() (fighters map[int]string, err error) {
 	}
 	defer r.close(db)
 
-	rows, err := db.Query("SELECT Character_Id, Name FROM Champions WHERE Tier > 0 ORDER BY Name")
+	rows, err := db.Query("SELECT Character_Id, Name FROM Champions WHERE Character_Id > 0 ORDER BY Name")
 	if err != nil {
 		return
 	}
@@ -160,7 +160,7 @@ func (r *Repository) GetFighter(nameOrCharId interface{}) (f *Fighter, err error
 	f = &Fighter{
 		Id:  0,
 		Elo: 300, Win: 0, Loss: 0, TotalBets: 0,
-		CharacterId: 0, Tier: 0,
+		CharacterId: 0, Tier: -1,
 		Created: time.Now(), Updated: time.Now(),
 	}
 	baseSql := "SELECT id, name, elo, wins, losses, total_bets, character_id, tier, created_at, updated_at FROM Champions WHERE %s"
