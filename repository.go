@@ -53,12 +53,7 @@ func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) 
 }
 
 func (r *Repository) SearchFighters(red, blue string) (lF, rF *Fighter, err error) {
-	criteria := "lower(Name)=lower($1) AND tier > 0"
-	return r.getFighters(red, blue, criteria)
-}
-
-func (r *Repository) SearchRetiredFighters(red, blue string) (lF, rF *Fighter, err error) {
-	criteria := "lower(Name)=lower($1) AND tier = 0"
+	criteria := "lower(Name)=lower($1)"
 	return r.getFighters(red, blue, criteria)
 }
 

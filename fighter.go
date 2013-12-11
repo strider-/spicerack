@@ -51,8 +51,8 @@ func (f *Fighter) IrcTierFormat() string {
 		return fmt.Sprintf(tier_format, 12, "B")
 	case TIER_P: // Brown
 		return fmt.Sprintf(tier_format, 7, "P")
-	case TIER_R: // Retired
-		return fmt.Sprintf(tier_format, 15, "R")
+	case TIER_N: // New
+		return fmt.Sprintf(tier_format, 3, "NEW")
 	}
 
 	return fmt.Sprintf(tier_format, 13, "?")

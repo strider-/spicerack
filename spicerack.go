@@ -22,7 +22,7 @@ const (
 	WINNER_RED  FightWinner = 1
 	WINNER_BLUE FightWinner = 2
 
-	TIER_R int = 0 // Retired
+	TIER_N int = 0 // New
 	TIER_S int = 1
 	TIER_A int = 2
 	TIER_B int = 3
