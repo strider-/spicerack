@@ -47,6 +47,18 @@ func (r *Repository) GetFighterNames() (fighters map[int]string, err error) {
 	return
 }
 
+func (r *Repository) GetUntieredCount() (count int, err error) {
+	count = 0
+	db, err := r.open()
+	if err != nil {
+		return
+	}
+	defer r.close(db)
+
+	db.QueryRow("SELECT count(id) FROM Champions WHERE created_at >= '2013-12-11' and tier=0 and character_id>0").Scan(&count)
+	return
+}
+
 func (r *Repository) GetFighters(red, blue string) (lF, rF *Fighter, err error) {
 	criteria := "Name=$1"
 	return r.getFighters(red, blue, criteria)
