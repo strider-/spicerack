@@ -264,7 +264,7 @@ func (r *Repository) GetHistory(f *Fighter) *History {
 
 func (r *Repository) ResetElo(base int) error {
 	db, _ := r.open()
-	defer db.Close()
+	defer db.Close(db)
 
 	_, err := db.Exec("UPDATE Champions SET Elo=$1, wins=0, losses=0, total_bets=0, tier=-1", base)
 	if err != nil {
