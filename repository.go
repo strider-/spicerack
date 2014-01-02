@@ -266,7 +266,7 @@ func (r *Repository) ResetElo(base int) error {
 	db, _ := r.open()
 	defer db.Close()
 
-	_, err := db.Exec("UPDATE Champions SET Elo=$1, wins=0, losses=0, total_bets=0", base)
+	_, err := db.Exec("UPDATE Champions SET Elo=$1, wins=0, losses=0, total_bets=0, tier=-1", base)
 	if err != nil {
 		return err
 	}
