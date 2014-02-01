@@ -248,7 +248,7 @@ func (r *Repository) GetHistory(f *Fighter) *History {
 
 	for rows.Next() {
 		r := &FightResult{}
-		rows.Scan(&r.Opponent, &r.Elo, &r.Victorious)
+		rows.Scan(&r.Opponent, &r.Elo, &r.Victorious, &r.Tier)
 		if r.Victorious {
 			wins = append(wins, r)
 		} else {
