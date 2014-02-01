@@ -11,6 +11,7 @@ type History struct {
 type FightResult struct {
 	Opponent   string
 	Elo        int
+	Tier       int
 	Victorious bool
 }
 

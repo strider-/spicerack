@@ -234,9 +234,10 @@ func (r *Repository) GetHistory(f *Fighter) *History {
 	db, _ := r.open()
 	defer r.close(db)
 	sql := `SELECT	
-				CASE WHEN red_champion_id=$1 THEN b.name else r.name END AS opponent, 
-				CASE WHEN red_champion_id=$1 THEN b.elo else r.elo END AS elo, 
-				CASE WHEN (winner=1 and red_champion_id=$1) or (winner=2 and blue_champion_id=$1) THEN 1 else 0 END AS outcome 
+				CASE WHEN red_champion_id=$1 THEN b.name ELSE r.name END AS opponent, 
+				CASE WHEN red_champion_id=$1 THEN b.elo ELSE r.elo END AS elo, 
+				CASE WHEN (winner=1 and red_champion_id=$1) or (winner=2 and blue_champion_id=$1) THEN 1 else 0 END AS outcome,
+				CASE WHEN red_champion_id=$1 THEN b.tier ELSE r.tier END AS tier
 			FROM Fights f 
 				JOIN Champions r on r.id = f.red_champion_id 
 				JOIN Champions b on b.id = f.blue_champion_id 
