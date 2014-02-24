@@ -27,6 +27,7 @@ const (
 	TIER_A int = 2
 	TIER_B int = 3
 	TIER_P int = 4 // Potato
+	TIER_X int = 5 // Bullshit
 )
 
 func Db(user, password, dbname string) *Repository {
