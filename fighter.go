@@ -44,7 +44,7 @@ func (f *Fighter) WinRate() float32 {
 func (f *Fighter) IrcTierFormat() string {
 	switch f.Tier {
 	case TIER_X: //
-		return fmt.Sprintf(tier_format, 10, "X")
+		return fmt.Sprintf(tier_format, 6, "X")
 	case TIER_S: // Green
 		return fmt.Sprintf(tier_format, 9, "S")
 	case TIER_A: // Red
